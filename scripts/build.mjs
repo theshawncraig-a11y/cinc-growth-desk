@@ -1,0 +1,4 @@
+import fs from 'node:fs';import path from 'node:path';
+const assets={};const types={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'application/javascript','.woff':'font/woff','.svg':'image/svg+xml','.png':'image/png','.txt':'text/plain'};
+function walk(dir){for(const f of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,f.name);if(f.isDirectory())walk(p);else assets['/'+p.slice(4)]={type:types[path.extname(p)]||'application/octet-stream',data:fs.readFileSync(p).toString('base64')};}}walk('web');
+fs.rmSync('dist',{recursive:true,force:true});fs.mkdirSync('dist/server',{recursive:true});fs.mkdirSync('dist/.openai',{recursive:true});fs.copyFileSync('.openai/hosting.json','dist/.openai/hosting.json');fs.writeFileSync('dist/server/index.js','const ASSETS='+JSON.stringify(assets)+';\n'+fs.readFileSync('worker/index.js','utf8'));console.log('Built worker with '+Object.keys(assets).length+' public code assets; no account datasets bundled.');
